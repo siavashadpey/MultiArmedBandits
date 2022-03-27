@@ -8,7 +8,7 @@ The figure below shows a draw history of 3 different options. The different colo
 Initially, the draws are made randomly as can be seen by the blend of the different colors. As we draw more, we gather more information about the groups' distributions and, therefore, can make a better educated guess about the most favourable one and draw more often from this group.
 This is depicated by the later stages of the graph being overwhelmingly blue.
 
-Going back to our advertisement example, this is as if we start by showing 3 advertisements and, as we gather more information about which advertisement works best, we show more of the best advertisement. This is better than the naive approach we discussed above, as we do not waste too much time (or money or loses on potential sales) with the ineffective advertisements.
+Going back to our advertisement example, this is as if we start by showing 3 advertisements and, as we gather more information about which advertisement works best, we show more of the best advertisement. This is a better approach than the naive one we discussed above, as we do not lose too much time (or money or potential sales) with the ineffective advertisements.
 
 <p align="center">
   <img src="figs/draw_history.png" alt="1000" width="500" />
