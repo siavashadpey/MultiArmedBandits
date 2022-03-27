@@ -1,6 +1,6 @@
 ## Multi-Armed Bandits
 
-A Bayesian inference approach to the multi-armed bandits.
+A Bayesian inference approach to the multi-armed bandits problem.
 
 The goal is to continuously gather data from all possible options and, simultaneously, learn the most favourable option. As a concrete example, the options can be different advertisements with the most favourable option being the one that leads to the most sales. This continuous learning approach allows us to quickly learn which advertisements work best and thus show these ones more to potential clients. An alternative naive approach is to show each advertisement 1000 times, then decide which advertisement worked best and move forward with that one. 
 
