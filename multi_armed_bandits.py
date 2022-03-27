@@ -1,66 +1,89 @@
 import numpy as np 
 import scipy.stats as stats
 import matplotlib.pyplot as plt
+import os 
 
-truth_probs = np.array([0.85, 0.6, 0.75])
-Ngroups = truth_probs.shape[0]
+xx = np.linspace(0.001,.999,200) # used for plotting distribution
 
-def query(i):
-	# TODO: replace by actual data
-	return np.random.rand() < truth_probs[i]
+class Bayesian():
+	def __init__(self):
+		self._dists = np.random.beta
 
-xx = np.linspace(0.001,.999,200)
+	def choose(self, Ntrials, Nwins):
+		X = self._dists(1 + Nwins, 1 + Ntrials - Nwins)
 
-dists = np.random.beta
+		# choose group with largest sample
+		return np.argmax(X)
 
-Ntrials = np.zeros(Ngroups)
-Nconversions = np.zeros(Ngroups)
-
-Nqueries = 5000
-Queries = np.zeros(Nqueries)
-plot_dist = True
-for query_i in range(Nqueries):
-
-	# sample from all distributions
-	X = dists(1 + Nconversions, 1 + Ntrials - Nconversions)
-
-	# choose group with largest sample
-	grp_idx = np.argmax(X)
-
-	# query from this group
-	r = query(grp_idx)
-
-	# update this group's distribution
-	Ntrials[grp_idx] += 1
-	Nconversions[grp_idx] += r
-	Queries[query_i] = grp_idx
-
-	if plot_dist and query_i % 300 == 0:
-		print(query_i)
-		for igrp in range(Ngroups):
-			yy = stats.beta(1 + Nconversions[igrp], 1 + Ntrials[igrp] - Nconversions[igrp])
+	def plot(self, i, Nwins, Ntrials):
+		for igrp in range(Nwins.shape[0]):
+			yy = stats.beta(1 + Nwins[igrp], 1 + Ntrials[igrp] - Nwins[igrp])
 			p = plt.plot(xx, yy.pdf(xx), label='Group {0:d}'.format(igrp))
 			c = p[0].get_markeredgecolor()
 			plt.vlines(truth_probs[igrp], 0, yy.pdf(truth_probs[igrp]),
-                       colors = c, linestyles = "--")
+            	       colors = c, linestyles = "--")
+		plt.title("Posteriori distribution after {:d} draws".format(i))
 
 		plt.legend()
 		plt.autoscale(tight = True)
-		plt.show()
-		
-fig, (ax,ax2) = plt.subplots(nrows=2, sharex=True)
-
-#extent = [Nqueries[0]-(Nqueries[1]-Nqueries[0])/2., Nqueries[-1]+(Nqueries[1]-Nqueries[0])/2.,0,1]
-ax.imshow(Queries[np.newaxis,:], cmap="plasma", aspect="auto")
-ax.set_yticks([])
-#ax.set_xlim(extent[0], extent[1])
-
-ax2.plot(range(Nqueries),Queries)
-
-plt.tight_layout()
-plt.show()
+		#plt.show()
+		path = os.path.join("figs", "draws_{:d}.png".format(i))
+		plt.savefig(path,format="png")
+		plt.close()
 
 
+class Simulation():
+	def __init__(self, Nqueries, truth_probs):
+		self._Nqueries = Nqueries
+		self._truth_probs = truth_probs # this is the underlying probability. In reality we do not know it so we can't use it directly.
+		self._Nchoices = truth_probs.shape[0]
+		self._Ntrials = np.zeros(self._Nchoices)
+		self._Nwins = np.zeros(self._Nchoices)
+		self._Queries = np.zeros(self._Nqueries)
 
-# plot chosen group vs. query index
-# 1d plot where colors indicate group 
+	def reset(self):
+		self._Ntrials = np.zeros(self._Nchoices)
+		self._Nwins = np.zeros(self._Nchoices)
+		self._Queries = np.zeros(self._Nqueries)
+
+	def query(self, i):
+		# TODO: replace by actual data
+		return np.random.rand() < self._truth_probs[i]
+
+	def simulate(self, choice_strategy, to_plot = False):
+		for query_i in range(self._Nqueries):
+
+			chosen_grp = choice_strategy.choose(self._Ntrials, self._Nwins)
+
+			# query from this group's
+			r = self.query(chosen_grp)
+
+			# update this group's stats
+			self._Ntrials[chosen_grp] += 1
+			self._Nwins[chosen_grp] += r
+
+			self._Queries[query_i] = chosen_grp
+
+			if to_plot and query_i % (self._Nqueries/10.0) == 0:
+				choice_strategy.plot(query_i, self._Nwins, self._Ntrials)
+
+		if to_plot:
+			fig, ax = plt.subplots()
+			plt.title("Draw history")
+			ax.imshow(self._Queries[np.newaxis,:], cmap="plasma", aspect="auto")
+			ax.set_yticks([])
+			ax.set_xlabel("Draw number")
+			plt.tight_layout()
+			plt.savefig(os.path.join("figs", "draw_history.png"), format="png")
+			plt.close()
+
+	def get_queries(self):
+		return self._Queries
+
+if __name__ == '__main__':
+	Ndraws = 5000
+	truth_probs = np.array([0.85, 0.6, 0.75])
+	to_plot = True
+	sim = Simulation(Ndraws, truth_probs)
+	bay_strat = Bayesian()
+	sim.simulate(bay_strat, to_plot)
