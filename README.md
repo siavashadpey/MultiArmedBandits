@@ -1,4 +1,4 @@
 ## Multi-Armed Bandits
 
 
-![alt text](./figs/draws_0.png)
+<img src="figs/draw_0.png" alt="alt text" width="200" />
